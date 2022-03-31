@@ -3,6 +3,7 @@ import alanBtn from "@alan-ai/alan-sdk-web";
 // import logo from './logo.svg';
 import "./App.css";
 import NewsCards from "./components/NewsCards/NewsCards";
+import wordsToNumbers from "words-to-numbers";
 
 
 
@@ -10,14 +11,30 @@ const alanKey = '0a96f599bc087ae65372595769426ad82e956eca572e1d8b807a3e2338fdd0d
 
 const App = () => {
   const [newsArticles, setNewsArticles] = useState([]);
+  const [activeArticle, setActiveArticle] = useState(-1);
 
   useEffect(() => {
     alanBtn({
       key: alanKey,
-      onCommand: ({ command, articles }) => {
+      onCommand: ({ command, articles, number }) => {
         if(command === 'newHeadlines'){
-          console.log(articles);
+          // console.log(articles);
           setNewsArticles(articles);
+          setActiveArticle(-1);
+        } else if(command === 'highlight'){
+          setActiveArticle((prevActiveArticle) =>  prevActiveArticle + 1 )
+        } else if(command === 'open') {
+          // console.log(number)
+          const parsedNumber = number.length > 2 ? wordsToNumbers(number, {fuzzy: true}) : number
+          const article = articles[parsedNumber-1];
+          if(parsedNumber > 20) 
+          {
+            alanBtn().playText('Please try that again.')
+          }
+          else if(article) {
+            window.open(article.url, '_blank')
+            alanBtn().playText('Opening...');
+          }
         }
       }
     })
@@ -25,8 +42,8 @@ const App = () => {
 
   return (
     <div>
-      <h1>Alan AI News Application</h1>
-      <NewsCards articles={newsArticles} />
+      <h1 style={{textAlign: 'center'}}>AI Powered News Application</h1>
+      <NewsCards articles={newsArticles} activeArticle={activeArticle} />
     </div>
   );
 };
